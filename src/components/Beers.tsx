@@ -2,14 +2,16 @@ import React from "react";
 import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 import { ICombinedStore } from "../store";
-import { IBeersStore, ACTIONS } from "../reducers/beersReducer";
+import { IBeersStore, ACTIONS, ErrorType } from "../reducers/beersReducer";
 
 export function Search({
     defaultValue,
     onChange,
+    messages,
 }: {
     defaultValue: string;
     onChange: (val: string) => void;
+    messages: ErrorType[];
 }) {
     return (
         <div className="Search">
@@ -19,6 +21,18 @@ export function Search({
                 defaultValue={defaultValue}
                 onChange={evt => onChange(evt.target.value)}
             />
+            {messages.length > 0 && (
+                <ul>
+                    {messages.map(message => (
+                        <li
+                            key={message.text}
+                            className={`Message Message--${message.type}`}
+                        >
+                            {message.text}
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     );
 }
@@ -60,11 +74,14 @@ interface State {}
 
 export class SearchBeer extends React.Component<Props, State> {
     public render() {
-        const { beers, loading } = this.props;
         return (
             <div className="App">
-                <Search defaultValue={""} onChange={this.handleBeerSearch} />
-                <Beers beers={beers} loading={loading} />
+                <Search
+                    defaultValue={""}
+                    onChange={this.handleBeerSearch}
+                    messages={this.props.messages}
+                />
+                <Beers {...this.props} />
             </div>
         );
     }

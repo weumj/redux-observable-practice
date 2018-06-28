@@ -1,5 +1,6 @@
+import { of } from "rxjs";
 import { ajax } from "rxjs/ajax";
-import { switchMap, map, debounceTime } from "rxjs/operators";
+import { switchMap, map, debounceTime, catchError } from "rxjs/operators";
 
 import { ACTIONS, SearchBeersAction, TYPES } from "../reducers/beersReducer";
 import { ActionsObservable } from "redux-observable";
@@ -14,4 +15,5 @@ export const searchBeersEpic = (action$: ActionsObservable<AnyAction>) =>
         debounceTime(500),
         switchMap(({ payload: { query } }) => ajax.getJSON(search(query))),
         map(ACTIONS.receiveBeers),
+        catchError(err => of(ACTIONS.searchBeersError(err))),
     );
