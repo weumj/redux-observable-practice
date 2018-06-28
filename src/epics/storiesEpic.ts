@@ -1,15 +1,31 @@
-import { of, OperatorFunction } from "rxjs";
-import { switchMap, delay } from "rxjs/operators";
+import { forkJoin, Observable } from "rxjs";
+import { ajax } from "rxjs/ajax";
+import { switchMap, map, mergeMap } from "rxjs/operators";
 
-import { ACTIONS, TYPES } from "../reducers/storiesReducer";
+import {
+    TYPES,
+    ACTIONS,
+    Story,
+    FetchStoriesFulfilledAction,
+} from "../reducers/storiesReducer";
 import { ActionsObservable } from "redux-observable";
-import { Action, AnyAction } from "redux";
+import { AnyAction } from "redux";
 
-export const loadStoriesEpic = (action$: ActionsObservable<AnyAction>) =>
-    action$.ofType(TYPES.LOAD_STORIES).pipe(
-        switchMap(() => of(ACTIONS.clear())) as OperatorFunction<
-            Action<typeof TYPES.LOAD_STORIES>,
-            Action<typeof TYPES.CLEAR_STORIES>
-        >,
-        delay(2000),
+const topStories = `https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty`;
+const toItemUrl = (id: number) =>
+    `https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`;
+
+export const loadStoriesEpic = (
+    action$: ActionsObservable<AnyAction>,
+): Observable<FetchStoriesFulfilledAction> =>
+    action$.ofType(TYPES.FETCH_STORIES).pipe(
+        switchMap(({ payload: { count } }) =>
+            ajax.getJSON<number[]>(topStories).pipe(
+                map(ids => ids.slice(0, count)),
+                map(ids => ids.map(toItemUrl)),
+                map(urls => urls.map(url => ajax.getJSON<Story>(url))),
+                mergeMap(reqs => forkJoin(reqs)),
+                map(ACTIONS.fetchStoriesFulfilledAction),
+            ),
+        ),
     );

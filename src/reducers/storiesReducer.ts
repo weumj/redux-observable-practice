@@ -1,28 +1,44 @@
-import { AnyAction } from "redux";
+import { Action, AnyAction } from "redux";
 
-const LOAD_STORIES = "LOAD_STORIES";
-const CLEAR_STORIES = "CLEAR_STORIES";
+const FETCH_STORIES = "FETCH_STORIES";
+const FETCH_STORIES_FULFILLED = "FETCH_STORIES_FULFILLED";
 
 export const TYPES = {
-    LOAD_STORIES,
-    CLEAR_STORIES,
+    FETCH_STORIES,
+    FETCH_STORIES_FULFILLED,
 };
 
-function loadStories() {
-    return {
-        type: LOAD_STORIES,
+export interface FetchStoriesAction extends Action {
+    payload: {
+        count: number;
     };
 }
 
-function clear() {
+function fetchStories(count: number = 5): FetchStoriesAction {
     return {
-        type: CLEAR_STORIES,
+        type: FETCH_STORIES,
+        payload: { count },
+    };
+}
+
+export interface FetchStoriesFulfilledAction extends Action {
+    payload: {
+        stories: Story[];
+    };
+}
+
+function fetchStoriesFulfilledAction(
+    stories: Story[],
+): FetchStoriesFulfilledAction {
+    return {
+        type: FETCH_STORIES_FULFILLED,
+        payload: { stories },
     };
 }
 
 export const ACTIONS = {
-    loadStories,
-    clear,
+    fetchStories,
+    fetchStoriesFulfilledAction,
 };
 
 export interface Story {
@@ -32,51 +48,31 @@ export interface Story {
     url: string;
 }
 
-const stories: Story[] = [
-    {
-        by: "bleakgadfly",
-        id: 14967192,
-        title: "To Protect Voting, Use Open-Source Software",
-        url:
-            "https://mobile.nytimes.com/2017/08/03/opinion/open-source-software-hacker-voting.html",
-    },
-    {
-        by: "mtyurt",
-        id: 14966545,
-        title: "Git: Using Advanced Rebase Features for a Clean Repository",
-        url:
-            "https://mtyurt.net/2017/08/08/git-using-advanced-rebase-features-for-a-clean-repository/",
-    },
-    {
-        by: "callumlocke",
-        id: 14967335,
-        title: "Inside an AI brain: What does machine learning look like?",
-        url:
-            "https://www.graphcore.ai/posts/what-does-machine-learning-look-like",
-    },
-];
-
 export interface IStoriesStore {
+    loading?: boolean;
     items: Story[];
 }
 const initialState: IStoriesStore = {
+    loading: false,
     items: [],
 };
 
 export function storiesReducer(
     state: IStoriesStore = initialState,
-    action: AnyAction,
+    { type, payload }: AnyAction,
 ): IStoriesStore {
-    switch (action.type) {
-        case LOAD_STORIES:
-            return {
-                ...state,
-                items: stories.slice(),
-            };
-        case CLEAR_STORIES:
+    switch (type) {
+        case FETCH_STORIES:
             return {
                 ...state,
                 items: [],
+                loading: true,
+            };
+        case FETCH_STORIES_FULFILLED:
+            return {
+                ...state,
+                items: payload.stories,
+                loading: false,
             };
         default:
             return state;

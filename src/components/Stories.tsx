@@ -4,31 +4,37 @@ import { connect } from "react-redux";
 import { ICombinedStore } from "../store";
 import { IStoriesStore, ACTIONS, Story } from "../reducers/storiesReducer";
 
-export function Stories(props: IStoriesStore & typeof ACTIONS) {
+export function Stories(props: IStoriesStore & { fetchStories: () => void }) {
+    if (props.loading) {
+        return <p>Please wait...</p>;
+    }
     return (
         <div>
-            <button type="button" onClick={props.loadStories}>
-                Load Top 3 Stories
+            <button
+                type="button"
+                onClick={props.fetchStories.bind(null, undefined)}
+            >
+                Load top 5 stories
             </button>
-            <button type="button" onClick={props.clear}>
-                Clear
-            </button>
-            <StoryList {...props} />
+            <StoryList items={props.items} />
         </div>
     );
 }
 
 function StoryList(props: IStoriesStore) {
-    if (props.items.length === 0) {
-        return null;
-    }
     return (
-        <div>{props.items.map(item => <Story {...item} key={item.id} />)}</div>
+        <ul>
+            {props.items.map(story => (
+                <li key={story.id}>
+                    <Story story={story} />
+                </li>
+            ))}
+        </ul>
     );
 }
 
-function Story(props: Story) {
-    return <p>{props.title}</p>;
+function Story({ story }: { story: Story }) {
+    return <a href={story.url}>{story.title}</a>;
 }
 
 const mapStateToProps = (state: ICombinedStore) => state.stories;
