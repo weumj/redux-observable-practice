@@ -3,11 +3,13 @@ import { Action, AnyAction } from "redux";
 const SEARCHED_BEERS = "SEARCHED_BEERS";
 const RECEIVED_BEERS = "RECEIVED_BEERS";
 const SEARCHED_BEERS_ERROR = "SEARCHED_BEERS_ERROR";
+const SEARCHED_BEERS_LOADING = "SEARCHED_BEERS_LOADING";
 
 export const TYPES = {
     SEARCHED_BEERS,
     RECEIVED_BEERS,
     SEARCHED_BEERS_ERROR,
+    SEARCHED_BEERS_LOADING,
 };
 
 export interface Beer {
@@ -56,10 +58,24 @@ export function searchBeersError(error: Error): SearchBeersErrorAction {
     };
 }
 
+export interface SearchBeerLoadingAction extends Action {
+    payload: {
+        loading: boolean;
+    };
+}
+
+export function searchBeersLoading(loading: boolean): SearchBeerLoadingAction {
+    return {
+        type: SEARCHED_BEERS_LOADING,
+        payload: { loading },
+    };
+}
+
 export const ACTIONS = {
     searchBeers,
     receiveBeers,
     searchBeersError,
+    searchBeersLoading,
 };
 
 export interface ErrorType {
@@ -84,10 +100,14 @@ export function beersReducer(
     { type, payload }: AnyAction,
 ) {
     switch (type) {
+        case SEARCHED_BEERS_LOADING:
+            return {
+                ...state,
+                loading: payload.loading,
+            };
         case SEARCHED_BEERS:
             return {
                 ...state,
-                loading: true,
                 messages: [],
             };
         case SEARCHED_BEERS_ERROR:
