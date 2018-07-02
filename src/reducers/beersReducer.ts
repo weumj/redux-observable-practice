@@ -4,12 +4,14 @@ const SEARCHED_BEERS = "SEARCHED_BEERS";
 const RECEIVED_BEERS = "RECEIVED_BEERS";
 const SEARCHED_BEERS_ERROR = "SEARCHED_BEERS_ERROR";
 const SEARCHED_BEERS_LOADING = "SEARCHED_BEERS_LOADING";
+const CANCEL_SEARCH = "CANCEL_SEARCH";
 
 export const TYPES = {
     SEARCHED_BEERS,
     RECEIVED_BEERS,
     SEARCHED_BEERS_ERROR,
     SEARCHED_BEERS_LOADING,
+    CANCEL_SEARCH,
 };
 
 export interface Beer {
@@ -71,11 +73,20 @@ export function searchBeersLoading(loading: boolean): SearchBeerLoadingAction {
     };
 }
 
+export interface CancelSearchAction extends Action<typeof CANCEL_SEARCH> {}
+
+export function cancelSearch(): CancelSearchAction {
+    return {
+        type: CANCEL_SEARCH,
+    };
+}
+
 export const ACTIONS = {
     searchBeers,
     receiveBeers,
     searchBeersError,
     searchBeersLoading,
+    cancelSearch,
 };
 
 export interface ErrorType {
@@ -120,6 +131,11 @@ export function beersReducer(
             return {
                 ...state,
                 beers: payload.beers,
+                loading: false,
+            };
+        case CANCEL_SEARCH:
+            return {
+                ...state,
                 loading: false,
             };
         default:

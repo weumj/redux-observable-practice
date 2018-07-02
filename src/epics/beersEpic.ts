@@ -1,16 +1,16 @@
 import { AnyAction } from "redux";
 import { ActionsObservable } from "redux-observable";
 
-import { of } from "rxjs";
+import { of, concat } from "rxjs";
 import { ajax } from "rxjs/ajax";
 import {
     switchMap,
     map,
     debounceTime,
     catchError,
-    concatMapTo,
     filter,
     pluck,
+    takeUntil,
 } from "rxjs/operators";
 
 import { ACTIONS, SearchBeersAction, TYPES } from "../reducers/beersReducer";
@@ -26,10 +26,13 @@ export const searchBeersEpic = (action$: ActionsObservable<AnyAction>) =>
         map(query => query.trim()),
         filter(query => query.length > 0),
         switchMap(query =>
-            of(ACTIONS.searchBeersLoading(true)).pipe(
-                concatMapTo(ajax.getJSON(search(query))),
-                map(ACTIONS.receiveBeers),
-                catchError(err => of(ACTIONS.searchBeersError(err))),
+            concat(
+                of(ACTIONS.searchBeersLoading(true)),
+                ajax.getJSON(search(query)).pipe(
+                    takeUntil(action$.ofType(TYPES.CANCEL_SEARCH)),
+                    map(ACTIONS.receiveBeers),
+                    catchError(err => of(ACTIONS.searchBeersError(err))),
+                ),
             ),
         ),
     );

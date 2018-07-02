@@ -8,10 +8,14 @@ export function Search({
     defaultValue,
     onChange,
     messages,
+    loading,
+    cancel,
 }: {
     defaultValue: string;
     onChange: (val: string) => void;
     messages: ErrorType[];
+    loading: boolean;
+    cancel: () => void;
 }) {
     return (
         <div className="Search">
@@ -21,6 +25,11 @@ export function Search({
                 defaultValue={defaultValue}
                 onChange={evt => onChange(evt.target.value)}
             />
+            {loading && (
+                <button type="button" onClick={cancel}>
+                    Cancel
+                </button>
+            )}
             {messages.length > 0 && (
                 <ul>
                     {messages.map(message => (
@@ -65,21 +74,25 @@ export function Beers({ beers, loading }: IBeersStore) {
 }
 
 interface StateProps extends IBeersStore {}
-interface DispatchProps {
-    searchBeers: typeof ACTIONS.searchBeers;
-}
+
+type OwnActionDispatchProps = typeof ACTIONS;
+interface DispatchProps extends OwnActionDispatchProps {}
 interface OwnProps {}
 type Props = StateProps & DispatchProps & OwnProps;
 interface State {}
 
 export class SearchBeer extends React.Component<Props, State> {
     public render() {
+        const { messages, loading, cancelSearch } = this.props;
+
         return (
             <div className="App">
                 <Search
                     defaultValue={""}
                     onChange={this.handleBeerSearch}
-                    messages={this.props.messages}
+                    messages={messages}
+                    loading={loading}
+                    cancel={cancelSearch}
                 />
                 <Beers {...this.props} />
             </div>
