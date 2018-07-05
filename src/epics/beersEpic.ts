@@ -23,10 +23,12 @@ const search = (term: string) =>
 export const searchBeersEpic = (
     action$: ActionsObservable<AnyAction>,
     store: ICombinedStore,
-    dependencies: { ajax: { getJSON: <T>(url: string) => Observable<T> } },
+    dependencies: {
+        ajax: { getJSON: <T>(url: string) => Observable<T> };
+    } & any,
 ) =>
     action$.ofType<SearchBeersAction>(TYPES.SEARCHED_BEERS).pipe(
-        debounceTime(500),
+        debounceTime(500, dependencies.scheduler),
         pluck<SearchBeersAction, string>("payload", "query"),
         map(query => query.trim()),
         filter(query => query.length > 0),
