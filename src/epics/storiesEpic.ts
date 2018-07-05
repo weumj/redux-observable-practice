@@ -10,6 +10,7 @@ import {
 } from "../reducers/storiesReducer";
 import { ActionsObservable } from "redux-observable";
 import { AnyAction } from "redux";
+import { ICombinedStore } from "../store";
 
 const topStories = `https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty`;
 const toItemUrl = (id: number) =>
@@ -17,10 +18,12 @@ const toItemUrl = (id: number) =>
 
 export const loadStoriesEpic = (
     action$: ActionsObservable<AnyAction>,
+    store: ICombinedStore,
+    dependencies: { ajax: { getJSON: <T>(url: string) => Observable<T> } },
 ): Observable<FetchStoriesFulfilledAction> =>
     action$.ofType(TYPES.FETCH_STORIES).pipe(
         switchMap(({ payload: { count } }) =>
-            ajax.getJSON<number[]>(topStories).pipe(
+            dependencies.ajax.getJSON<number[]>(topStories).pipe(
                 map(ids => ids.slice(0, count)),
                 map(ids => ids.map(toItemUrl)),
                 map(urls => urls.map(url => ajax.getJSON<Story>(url))),

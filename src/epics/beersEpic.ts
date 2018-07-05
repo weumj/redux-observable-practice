@@ -2,7 +2,6 @@ import { AnyAction } from "redux";
 import { ActionsObservable } from "redux-observable";
 
 import { of, concat } from "rxjs";
-import { ajax } from "rxjs/ajax";
 import {
     switchMap,
     map,
@@ -14,12 +13,18 @@ import {
 } from "rxjs/operators";
 
 import { ACTIONS, SearchBeersAction, TYPES } from "../reducers/beersReducer";
+import { ICombinedStore } from "../store";
+import { Observable } from "rxjs/index";
 
 const beers = `https://api.punkapi.com/v2/beers`;
 const search = (term: string) =>
     `${beers}?beer_name=${encodeURIComponent(term)}`;
 
-export const searchBeersEpic = (action$: ActionsObservable<AnyAction>) =>
+export const searchBeersEpic = (
+    action$: ActionsObservable<AnyAction>,
+    store: ICombinedStore,
+    dependencies: { ajax: { getJSON: <T>(url: string) => Observable<T> } },
+) =>
     action$.ofType<SearchBeersAction>(TYPES.SEARCHED_BEERS).pipe(
         debounceTime(500),
         pluck<SearchBeersAction, string>("payload", "query"),
@@ -28,7 +33,7 @@ export const searchBeersEpic = (action$: ActionsObservable<AnyAction>) =>
         switchMap(query =>
             concat(
                 of(ACTIONS.searchBeersLoading(true)),
-                ajax.getJSON(search(query)).pipe(
+                dependencies.ajax.getJSON(search(query)).pipe(
                     takeUntil(action$.ofType(TYPES.CANCEL_SEARCH)),
                     map(ACTIONS.receiveBeers),
                     catchError(err => of(ACTIONS.searchBeersError(err))),

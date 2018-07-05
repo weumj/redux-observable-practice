@@ -9,6 +9,8 @@ import {
 
 import { createEpicMiddleware } from "redux-observable";
 
+import { ajax } from "rxjs/ajax";
+
 const composeEnhancers =
     (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
@@ -26,9 +28,17 @@ export interface ICombinedStore {
     beers: IBeersStore;
 }
 
-const epicMiddleware = createEpicMiddleware();
+export default function create(
+    initialState: any = {},
+    dependencies: object = {},
+) {
+    const epicMiddleware = createEpicMiddleware({
+        dependencies: {
+            ajax,
+            ...dependencies,
+        },
+    });
 
-export default function create(initialState: any = {}) {
     const middlewares: Middleware[] = [epicMiddleware];
     const enhancers = [applyMiddleware(...middlewares)];
 
